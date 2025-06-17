@@ -142,19 +142,134 @@ class HackerNewsExtractor:
                 
         return stories
 
+    def get_job_postings(self, limit: int = 100) -> List[int]:
+        """
+        Get IDs of recent job postings.
+        
+        Args:
+            limit (int): Maximum number of job IDs to return
+            
+        Returns:
+            List[int]: List of job posting IDs
+        """
+        jobs = self._make_request("jobstories.json")
+        return jobs[:limit]
+
+    def get_job(self, job_id: int) -> Dict[str, Any]:
+        """
+        Get details of a specific job posting.
+        
+        Args:
+            job_id (int): ID of the job to fetch
+            
+        Returns:
+            Dict[str, Any]: Job posting details
+        """
+        job = self._make_request(f"item/{job_id}.json")
+        if not job:
+            return None
+            
+        # Extract job-specific information from text
+        if job.get('text'):
+            text = job['text'].lower()
+            # Extract job type
+            if 'full-time' in text:
+                job['job_type'] = 'full-time'
+            elif 'contract' in text:
+                job['job_type'] = 'contract'
+            elif 'remote' in text:
+                job['job_type'] = 'remote'
+            else:
+                job['job_type'] = 'other'
+                
+            # Extract location (basic implementation)
+            location_keywords = ['san francisco', 'new york', 'london', 'berlin', 'remote']
+            for location in location_keywords:
+                if location in text:
+                    job['location'] = location
+                    break
+                    
+            # Extract company name (basic implementation)
+            if 'hiring' in text:
+                # Try to find company name after "hiring"
+                parts = text.split('hiring')
+                if len(parts) > 1:
+                    company = parts[1].split()[0]
+                    job['company'] = company
+                    
+            # Extract salary range (basic implementation)
+            if 'salary' in text:
+                # Try to find salary range after "salary"
+                parts = text.split('salary')
+                if len(parts) > 1:
+                    salary_text = parts[1].split()[0]
+                    if '-' in salary_text:
+                        job['salary_range'] = salary_text
+                        
+        return job
+
+    def get_recent_jobs(self, hours: int = 24) -> List[Dict[str, Any]]:
+        """
+        Get job postings from the last N hours.
+        
+        Args:
+            hours (int): Number of hours to look back
+            
+        Returns:
+            List[Dict[str, Any]]: List of job postings
+        """
+        jobs = []
+        job_ids = self.get_job_postings(limit=500)  # Get more jobs to filter by time
+        
+        for job_id in job_ids:
+            job = self.get_job(job_id)
+            if not job:
+                continue
+                
+            job_time = datetime.fromtimestamp(job.get('time', 0))
+            if (datetime.now() - job_time).total_seconds() <= hours * 3600:
+                jobs.append(job)
+                
+        return jobs
+
 # Example usage:
 def main():
     extractor = HackerNewsExtractor()
     
-    # Get top 10 stories
-    top_stories = extractor.get_top_stories(limit=10)
+    print("Starting data extraction from HackerNews API...")
     
-    # Get details for each story
-    for story_id in top_stories:
-        story = extractor.get_story(story_id)
-        print(f"Title: {story.get('title')}")
-        print(f"Score: {story.get('score')}")
-        print("---")
+    # Extract stories
+    print("\nExtracting stories data...")
+    stories = extractor.get_recent_stories(hours=24)
+    print(f"✓ Extracted {len(stories)} stories")
+    
+    # Extract comments
+    print("\nExtracting comments data...")
+    total_comments = 0
+    for story in stories:
+        if 'kids' in story:
+            total_comments += len(story['kids'])
+    print(f"✓ Found {total_comments} comments")
+    
+    # Extract users
+    print("\nExtracting users data...")
+    unique_users = set()
+    for story in stories:
+        if 'by' in story:
+            unique_users.add(story['by'])
+    print(f"✓ Found {len(unique_users)} unique users")
+    
+    # Extract jobs
+    print("\nExtracting jobs data...")
+    jobs = extractor.get_recent_jobs(hours=24)
+    print(f"✓ Extracted {len(jobs)} job postings")
+    
+    print("\nData extraction completed successfully!")
+    print(f"Total datasets extracted:")
+    print(f"- Stories: {len(stories)}")
+    print(f"- Comments: {total_comments}")
+    print(f"- Users: {len(unique_users)}")
+    print(f"- Jobs: {len(jobs)}")
 
 if __name__ == "__main__":
     main() 

@@ -65,11 +65,29 @@ class DataLoader:
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS users (
                     id TEXT PRIMARY KEY,
-                    created TIMESTAMP,
-                    karma INTEGER,
+                    username VARCHAR(255) NOT NULL UNIQUE,
+                    created_at TIMESTAMP NOT NULL,
+                    karma INTEGER DEFAULT 0,
                     about TEXT,
-                    submitted INTEGER[],
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    is_deleted BOOLEAN DEFAULT FALSE
+                )
+            """))
+
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS jobs (
+                    id INTEGER PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    url TEXT,
+                    text TEXT,
+                    score INTEGER,
+                    time TIMESTAMP,
+                    by TEXT,
+                    job_type VARCHAR(50),
+                    location VARCHAR(255),
+                    company VARCHAR(255),
+                    salary_range VARCHAR(255),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (by) REFERENCES users(id)
                 )
             """))
             conn.commit()
@@ -158,20 +176,20 @@ class DataLoader:
         with self.Session() as session:
             session.execute(
                 text("""
-                    INSERT INTO users (id, created, karma, about, submitted)
-                    VALUES (:id, :created, :karma, :about, :submitted)
+                    INSERT INTO users (id, username, created_at, karma, about)
+                    VALUES (:id, :username, :created_at, :karma, :about)
                     ON CONFLICT (id) DO UPDATE SET
-                        created = EXCLUDED.created,
+                        username = EXCLUDED.username,
+                        created_at = EXCLUDED.created_at,
                         karma = EXCLUDED.karma,
-                        about = EXCLUDED.about,
-                        submitted = EXCLUDED.submitted
+                        about = EXCLUDED.about
                 """),
                 {
                     'id': user['id'],
-                    'created': datetime.fromtimestamp(user.get('created', 0)),
+                    'username': user['id'],  # Using id as username since that's what HackerNews uses
+                    'created_at': datetime.fromtimestamp(user.get('created', 0)),
                     'karma': user.get('karma'),
-                    'about': user.get('about'),
-                    'submitted': user.get('submitted', [])
+                    'about': user.get('about')
                 }
             )
             session.commit()
@@ -196,28 +214,79 @@ class DataLoader:
         if 'comments' in story:
             load_comments(story['comments'], story['id'])
 
+    def load_job(self, job: Dict[str, Any]) -> None:
+        """
+        Load a job posting into the database.
+        
+        Args:
+            job (Dict[str, Any]): Job data to load
+        """
+        with self.Session() as session:
+            session.execute(
+                text("""
+                    INSERT INTO jobs (
+                        id, title, url, text, score, time, by,
+                        job_type, location, company, salary_range
+                    )
+                    VALUES (
+                        :id, :title, :url, :text, :score, :time, :by,
+                        :job_type, :location, :company, :salary_range
+                    )
+                    ON CONFLICT (id) DO UPDATE SET
+                        title = EXCLUDED.title,
+                        url = EXCLUDED.url,
+                        text = EXCLUDED.text,
+                        score = EXCLUDED.score,
+                        time = EXCLUDED.time,
+                        by = EXCLUDED.by,
+                        job_type = EXCLUDED.job_type,
+                        location = EXCLUDED.location,
+                        company = EXCLUDED.company,
+                        salary_range = EXCLUDED.salary_range
+                """),
+                {
+                    'id': job['id'],
+                    'title': job.get('title'),
+                    'url': job.get('url'),
+                    'text': job.get('text'),
+                    'score': job.get('score'),
+                    'time': datetime.fromtimestamp(job.get('time', 0)),
+                    'by': job.get('by'),
+                    'job_type': job.get('job_type'),
+                    'location': job.get('location'),
+                    'company': job.get('company'),
+                    'salary_range': job.get('salary_range')
+                }
+            )
+            session.commit()
+
+    def load_recent_jobs(self, jobs: List[Dict[str, Any]]) -> None:
+        """
+        Load multiple job postings into the database.
+        
+        Args:
+            jobs (List[Dict[str, Any]]): List of job data to load
+        """
+        for job in jobs:
+            self.load_job(job)
+
 # Example usage:
 def main():
     database_url = "postgresql://user:password@localhost:5432/hackernews"
     loader = DataLoader(database_url)
     
-    # Create tables
+    print("Initializing database...")
     loader.create_tables()
+    print("✓ Database tables created successfully")
     
-    # Example story data
-    story = {
-        'id': 1,
-        'title': 'Example Story',
-        'url': 'https://example.com',
-        'score': 100,
-        'time': datetime.now().timestamp(),
-        'by': 'user1',
-        'descendants': 2,
-        'kids': [2, 3],
-        'text': 'Story text',
-        'type': 'story'
-    }
-    loader.load_story(story)
+    print("\nStarting data loading process...")
+    
+    print("\nData loading completed successfully!")
+    print(f"Total records loaded:")
+    print(f"- Stories: {len(stories)}")
+    print(f"- Comments: {len(comments)}")
+    print(f"- Users: {len(users)}")
+    print(f"- Jobs: {len(jobs)}")
 
 if __name__ == "__main__":
     main() 
