@@ -70,4 +70,43 @@ coverage.xml
 # mypy
 .mypy_cache/
 .dmypy.json
-dmypy.json 
+dmypy.json
+
+# HackerNews AI Project specific
+# Data files
+data/
+*.csv
+*.json
+*.parquet
+*.pickle
+*.pkl
+
+# API keys and secrets
+secrets.json
+config/secrets.py
+*.key
+*.pem
+
+# Cache directories
+.cache/
+cache/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Render
+.render-buildlogs/
+
+# Railway
+.railway/ 

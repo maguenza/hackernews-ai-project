@@ -10,6 +10,19 @@ from pathlib import Path
 # Add src to path
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
+# Load .env file if it exists
+def load_env_file():
+    """Load environment variables from .env file"""
+    env_file = Path(__file__).parent.parent / ".env"
+    if env_file.exists():
+        with open(env_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    os.environ[key] = value
+        print("✅ Loaded environment variables from .env file")
+
 def test_imports():
     """Test that all required modules can be imported"""
     try:
@@ -33,6 +46,9 @@ def test_environment():
     
     if missing_vars:
         print(f"❌ Missing environment variables: {missing_vars}")
+        print("💡 Set these environment variables:")
+        print("   export DATABASE_URL='your_railway_postgres_url'")
+        print("   export HACKERNEWS_API_URL='https://hacker-news.firebaseio.com/v0'")
         return False
     else:
         print("✅ All required environment variables are set")
@@ -41,11 +57,15 @@ def test_environment():
 def test_database_connection():
     """Test database connection"""
     try:
-        from database.connection import get_database_connection
-        conn = get_database_connection()
-        conn.close()
-        print("✅ Database connection successful")
-        return True
+        from database.connection import get_db_connection
+        from sqlalchemy import text
+        
+        with get_db_connection() as db:
+            # Test a simple query using text() wrapper
+            result = db.execute(text("SELECT 1")).fetchone()
+            if result:
+                print("✅ Database connection successful")
+                return True
     except Exception as e:
         print(f"❌ Database connection failed: {e}")
         return False
@@ -53,6 +73,10 @@ def test_database_connection():
 def main():
     """Run all tests"""
     print("Running ETL pipeline tests...\n")
+    
+    # Load .env file first
+    load_env_file()
+    print()
     
     tests = [
         test_imports,
