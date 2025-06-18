@@ -1,0 +1,39 @@
+name: HackerNews ETL Pipeline
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Run every 6 hours
+  workflow_dispatch:  # Allow manual triggers
+
+jobs:
+  etl:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Test ETL pipeline setup
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        HACKERNEWS_API_URL: ${{ secrets.HACKERNEWS_API_URL }}
+      run: |
+        python scripts/test_etl.py
+        
+    - name: Run ETL pipeline
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        HACKERNEWS_API_URL: ${{ secrets.HACKERNEWS_API_URL }}
+      run: |
+        python src/data/extractor.py
+        python src/data/transformer.py
+        python src/data/loader.py 

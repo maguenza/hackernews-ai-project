@@ -95,17 +95,21 @@ def main():
                 if not job:
                     continue
                 
+                # First, ensure the user exists
+                if 'by' in job:
+                    user = extractor.get_user(job['by'])
+                    if user:
+                        logger.info(f"Loading user {job['by']} for job {job_id}...")
+                        loader.load_user(user)
+                        users_processed.add(user['id'])
+                    else:
+                        logger.warning(f"User {job['by']} not found, skipping job {job_id}")
+                        continue
+                
                 # Load job
                 logger.info(f"Loading job {job_id}...")
                 loader.load_job(job)
                 jobs_processed += 1
-                
-                # Get and load user data if not already processed
-                if 'by' in job and job['by'] not in users_processed:
-                    user = extractor.get_user(job['by'])
-                    if user:
-                        loader.load_user(user)
-                        users_processed.add(user['id'])
                 
                 # Transform job data
                 logger.info(f"Transforming job {job_id} data...")
