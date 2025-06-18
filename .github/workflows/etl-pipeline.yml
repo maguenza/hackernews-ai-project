@@ -26,6 +26,7 @@ jobs:
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         HACKERNEWS_API_URL: ${{ secrets.HACKERNEWS_API_URL }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: |
         python scripts/test_etl.py
         
@@ -33,7 +34,6 @@ jobs:
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         HACKERNEWS_API_URL: ${{ secrets.HACKERNEWS_API_URL }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: |
-        python src/data/extractor.py
-        python src/data/transformer.py
-        python src/data/loader.py 
+        python run.py 
