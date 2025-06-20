@@ -33,15 +33,16 @@ class Story(Base):
     __tablename__ = 'stories'
 
     id = Column(Integer, primary_key=True)
-    title = Column(String(512), nullable=False)
-    url = Column(String(1024))
+    title = Column(Text, nullable=False)
+    url = Column(Text)
+    score = Column(Integer)
+    time = Column(DateTime)  # From ETL pipeline
+    by = Column(String(255), ForeignKey('users.id'), nullable=True)  # From ETL pipeline
+    descendants = Column(Integer)
+    kids = Column(String)  # Array stored as string
     text = Column(Text)
-    score = Column(Integer, default=0)
-    author_id = Column(String(255), ForeignKey('users.id'), nullable=False)
-    created_at = Column(DateTime, nullable=False)
-    is_deleted = Column(Boolean, default=False)
-    is_dead = Column(Boolean, default=False)
-    descendants = Column(Integer, default=0)  # Number of comments
+    type = Column(String(50))
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     author = relationship("User", back_populates="stories")
@@ -61,13 +62,14 @@ class Comment(Base):
     __tablename__ = 'comments'
 
     id = Column(Integer, primary_key=True)
-    text = Column(Text, nullable=False)
-    author_id = Column(String(255), ForeignKey('users.id'), nullable=False)
-    story_id = Column(Integer, ForeignKey('stories.id'), nullable=False)
     parent_id = Column(Integer, ForeignKey('comments.id'))
-    created_at = Column(DateTime, nullable=False)
-    is_deleted = Column(Boolean, default=False)
-    is_dead = Column(Boolean, default=False)
+    story_id = Column(Integer, ForeignKey('stories.id'), nullable=False)
+    by = Column(String(255), ForeignKey('users.id'), nullable=True)  # From ETL pipeline
+    text = Column(Text)
+    time = Column(DateTime)  # From ETL pipeline
+    kids = Column(String)  # Array stored as string
+    type = Column(String(50))
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     author = relationship("User", back_populates="comments")
@@ -81,25 +83,24 @@ class Comment(Base):
     )
 
     def __repr__(self):
-        return f"<Comment(id={self.id}, author_id={self.author_id})>"
+        return f"<Comment(id={self.id}, by={self.by})>"
 
 class Job(Base):
     """HackerNews job posting model."""
     __tablename__ = 'jobs'
 
     id = Column(Integer, primary_key=True)
-    title = Column(String(512), nullable=False)
-    url = Column(String(1024))
+    title = Column(Text, nullable=False)
+    url = Column(Text)
     text = Column(Text)
-    score = Column(Integer, default=0)
-    author_id = Column(String(255), ForeignKey('users.id'), nullable=False)
-    created_at = Column(DateTime, nullable=False)
-    is_deleted = Column(Boolean, default=False)
-    is_dead = Column(Boolean, default=False)
-    job_type = Column(String(50))  # e.g., 'full-time', 'contract', 'remote'
+    score = Column(Integer)
+    time = Column(DateTime)  # From ETL pipeline
+    by = Column(String(255), ForeignKey('users.id'), nullable=True)  # From ETL pipeline
+    job_type = Column(String(50))
     location = Column(String(255))
     company = Column(String(255))
     salary_range = Column(String(255))
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     author = relationship("User", back_populates="jobs")

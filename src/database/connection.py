@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
 from contextlib import contextmanager
 
-from .models import Base
+from src.database.models import Base
 
 # Database configuration
 DATABASE_URL = os.getenv(

@@ -19,10 +19,11 @@ hackernews-ai-project/
 │   ├── ai/
 │   │   ├── __init__.py
 │   │   ├── langchain_setup.py # LangChain configuration
+│   │   ├── tools.py          # Custom LangChain tools
 │   │   └── chatbot.py        # Chatbot implementation
 │   └── api/
 │       ├── __init__.py
-│       └── routes.py         # API endpoints
+│       └── routes.py         # FastAPI endpoints
 ├── tests/
 │   ├── __init__.py
 │   ├── test_extractor.py
@@ -35,124 +36,237 @@ hackernews-ai-project/
 ├── requirements.txt
 ├── Dockerfile
 ├── docker-compose.yml
-└── render.yaml              # Render deployment configuration
+├── render.yaml              # Render deployment configuration
+├── test_chatbot.py          # Chatbot test script
+└── LANGCHAIN_GUIDE.md       # Comprehensive LangChain guide
 ```
 
-## Workflow
+## Features
 
-1. **Data Extraction**
-   - Connect to HackerNews API
-   - Extract stories, comments, and user data
-   - Implement rate limiting and error handling
-   - Store raw data in PostgreSQL
+### 🤖 AI-Powered Chatbot
+- **LangChain Integration**: Built with LangChain framework for LLM interactions
+- **Custom Tools**: Specialized tools for HackerNews data queries
+- **Conversation Memory**: Maintains chat history and context
+- **Natural Language Processing**: Understands and responds to natural language queries
 
-2. **Data Transformation**
-   - Clean and normalize data
-   - Create derived tables for analysis
-   - Implement data quality checks
-   - Schedule regular updates
+### 📊 Data Analysis Capabilities
+- **Story Search**: Find stories by keywords, topics, or time periods
+- **Job Search**: Search job postings with location, type, and company filters
+- **User Analytics**: Get user information, karma scores, and activity
+- **Trending Topics**: Analyze popular topics and discussions
+- **Top Stories**: Retrieve highest-scoring stories by time period
 
-3. **AI Integration**
-   - Set up LangChain framework
-   - Configure language model
-   - Create prompt templates
-   - Implement conversation memory
+### 🛠️ Technical Features
+- **PostgreSQL Integration**: Robust database storage and querying
+- **FastAPI Web Interface**: RESTful API with automatic documentation
+- **Comprehensive Testing**: Unit and integration tests
+- **Error Handling**: Graceful error management and logging
+- **Health Monitoring**: System health checks and diagnostics
 
-4. **Chatbot Implementation**
-   - Build user interface
-   - Handle user queries
-   - Process natural language
-   - Generate responses
+## Quick Start
 
-5. **Deployment**
-   - Configure Render deployment
-   - Set up environment variables
-   - Implement CI/CD pipeline
-   - Monitor application health
+### 1. **Install Dependencies**
+```bash
+pip install -r requirements.txt
+```
 
-## Key Components
+### 2. **Set Environment Variables**
+```bash
+export OPENAI_API_KEY="your_openai_api_key"
+export DATABASE_URL="postgresql://user:password@host:port/dbname"
+export HACKERNEWS_API_URL="https://hacker-news.firebaseio.com/v0"
+```
 
-### Data Extraction (`src/data/extractor.py`)
-- HackerNews API client
-- Rate limiting implementation
-- Error handling
-- Data validation
+### 3. **Run Data Pipeline**
+```bash
+python run.py
+```
 
-### Database Models (`src/database/models.py`)
-- Story model
-- Comment model
-- User model
-- Analysis tables
+### 4. **Test the Chatbot**
+```bash
+python test_chatbot.py
+```
 
-### LangChain Setup (`src/ai/langchain_setup.py`)
-- Model configuration
-- Prompt templates
-- Memory management
-- Chain construction
+### 5. **Start the API Server**
+```bash
+uvicorn src.api.routes:app --reload
+```
 
-### Chatbot (`src/ai/chatbot.py`)
-- User interaction handling
-- Query processing
-- Response generation
-- Conversation management
+## Usage Examples
 
-### API Routes (`src/api/routes.py`)
-- Health check endpoint
-- Data query endpoints
-- Chatbot interaction endpoints
-- Analytics endpoints
+### Basic Chatbot Usage
+```python
+from src.ai.chatbot import HackerNewsChatbot
 
-## Testing Strategy
+# Initialize chatbot
+chatbot = HackerNewsChatbot()
 
-1. **Unit Tests**
-   - Data extraction tests
-   - Database operation tests
-   - AI model tests
-   - API endpoint tests
+# Ask questions
+response = chatbot.chat("What are the top stories from the last week?")
+print(response)
 
-2. **Integration Tests**
-   - End-to-end workflow tests
-   - Database integration tests
-   - API integration tests
+# Search for specific topics
+response = chatbot.chat("Find stories about artificial intelligence")
+print(response)
 
-3. **Performance Tests**
-   - Load testing
-   - Response time testing
-   - Database query optimization
+# Look for jobs
+response = chatbot.chat("Find remote Python developer jobs")
+print(response)
+```
+
+### Direct Tool Usage
+```python
+# Search stories
+result = chatbot.direct_tool_call("search_stories", query="python", limit=5)
+
+# Find jobs
+result = chatbot.direct_tool_call("search_jobs", query="developer", location="remote")
+
+# Get user info
+result = chatbot.direct_tool_call("get_user_info", username="pg")
+```
+
+### API Usage
+```bash
+# Send a chat message
+curl -X POST "http://localhost:8000/chat" \
+     -H "Content-Type: application/json" \
+     -d '{"message": "What are the top stories?"}'
+
+# Get system information
+curl "http://localhost:8000/system/info"
+
+# Get suggested queries
+curl "http://localhost:8000/suggestions"
+```
+
+## LangChain Implementation
+
+This project uses **LangChain** to create an intelligent chatbot that can:
+
+### 🔧 **Custom Tools**
+- **SearchStoriesTool**: Query stories by keywords and filters
+- **SearchJobsTool**: Find job postings with multiple criteria
+- **GetTopStoriesTool**: Retrieve top stories by score
+- **GetUserInfoTool**: Get user information and activity
+- **GetTrendingTopicsTool**: Analyze trending topics
+
+### 🧠 **Agent Architecture**
+- **Intelligent Routing**: Automatically chooses appropriate tools
+- **Multi-step Reasoning**: Can combine multiple tools for complex queries
+- **Natural Language Understanding**: Processes conversational queries
+- **Context Awareness**: Maintains conversation history
+
+### 💾 **Memory Management**
+- **Conversation Buffer**: Stores chat history
+- **Context Preservation**: Maintains context across interactions
+- **Memory Clearing**: Option to reset conversation state
+
+For detailed information about the LangChain implementation, see [LANGCHAIN_GUIDE.md](LANGCHAIN_GUIDE.md).
+
+## Testing
+
+### Run All Tests
+```bash
+pytest tests/
+```
+
+### Run Specific Tests
+```bash
+# Chatbot tests
+pytest tests/test_chatbot.py
+
+# With coverage
+pytest --cov=src tests/
+```
+
+### Manual Testing
+```bash
+# Test chatbot functionality
+python test_chatbot.py
+
+# Test API endpoints
+curl "http://localhost:8000/health"
+```
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | API information and available endpoints |
+| `/health` | GET | System health check |
+| `/chat` | POST | Send message to chatbot |
+| `/system/info` | GET | Get system information |
+| `/suggestions` | GET | Get suggested queries |
+| `/tools` | GET | List available tools |
+| `/tools/{tool_name}` | POST | Call specific tool directly |
+| `/chat/clear` | POST | Clear chat history |
+
+## Database Schema
+
+The project uses PostgreSQL with the following main tables:
+
+- **users**: HackerNews user information
+- **stories**: Story posts with metadata
+- **comments**: User comments on stories
+- **jobs**: Job posting information
+
+See `src/database/models.py` for complete schema details.
 
 ## Deployment
 
-### Render Configuration
-- Web service configuration
-- PostgreSQL database setup
-- Environment variables
-- Build and deploy commands
+### Render Deployment
+The project includes `render.yaml` for easy deployment on Render:
+
+1. Connect your GitHub repository to Render
+2. Set environment variables in Render dashboard
+3. Deploy automatically on push to main branch
 
 ### Environment Variables
-```
+```bash
 DATABASE_URL=postgresql://user:password@host:port/dbname
-OPENAI_API_KEY=your_api_key
+OPENAI_API_KEY=your_openai_api_key
 HACKERNEWS_API_URL=https://hacker-news.firebaseio.com/v0
 ```
 
-## Getting Started
+## Development
 
-1. Clone the repository
-2. Install dependencies: `pip install -r requirements.txt`
-3. Set up environment variables
-4. Run tests: `pytest tests/`
-5. Start the application: `python src/main.py`
+### Code Quality
+```bash
+# Format code
+black src/ tests/
 
-## Dependencies
+# Sort imports
+isort src/ tests/
 
-- Python 3.9+
-- PostgreSQL 13+
-- LangChain
-- FastAPI
-- SQLAlchemy
-- Pytest
-- Docker
+# Type checking
+mypy src/
+```
+
+### Adding New Tools
+1. Create a new tool class in `src/ai/tools.py`
+2. Inherit from `BaseTool`
+3. Define input schema with Pydantic
+4. Implement `_run` method
+5. Add to `HackerNewsTools` class
+6. Write tests in `tests/test_chatbot.py`
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Run the test suite
+6. Submit a pull request
 
 ## License
 
 MIT License
+
+## Support
+
+For questions about the LangChain implementation or general usage, please refer to:
+- [LANGCHAIN_GUIDE.md](LANGCHAIN_GUIDE.md) - Comprehensive LangChain guide
+- [LangChain Documentation](https://python.langchain.com/) - Official LangChain docs
+- [OpenAI API Documentation](https://platform.openai.com/docs) - OpenAI API reference
