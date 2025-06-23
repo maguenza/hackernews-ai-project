@@ -2,10 +2,11 @@ services:
   - type: web
     name: hackernews-ai-chatbot
     env: python
-    pythonVersion: "3.11"
-    buildCommand: chmod +x build.sh && ./build.sh
+    buildCommand: pip install -r requirements.txt
     startCommand: uvicorn src.api.routes:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.11"
       - key: DATABASE_URL
         sync: false
       - key: OPENAI_API_KEY
