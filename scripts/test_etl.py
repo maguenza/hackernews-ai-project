@@ -7,8 +7,9 @@ import os
 import sys
 from pathlib import Path
 
-# Add src to path
-sys.path.append(str(Path(__file__).parent.parent / "src"))
+# Add project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 # Load .env file if it exists
 def load_env_file():
@@ -26,9 +27,9 @@ def load_env_file():
 def test_imports():
     """Test that all required modules can be imported"""
     try:
-        from data.extractor import HackerNewsExtractor
-        from data.transformer import DataTransformer
-        from data.loader import DataLoader
+        from src.data.extractor import HackerNewsExtractor
+        from src.data.transformer import DataTransformer
+        from src.data.loader import DataLoader
         print("✅ All imports successful")
         return True
     except ImportError as e:
@@ -57,7 +58,7 @@ def test_environment():
 def test_database_connection():
     """Test database connection"""
     try:
-        from database.connection import get_db_connection
+        from src.database.connection import get_db_connection
         from sqlalchemy import text
         
         with get_db_connection() as db:
