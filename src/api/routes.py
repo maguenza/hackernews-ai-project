@@ -66,7 +66,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     response: str
-    session_id: str = None
+    session_id: Optional[str] = None
 
 class HealthResponse(BaseModel):
     status: str
