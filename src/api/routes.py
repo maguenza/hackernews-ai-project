@@ -3,7 +3,7 @@ FastAPI routes for HackerNews AI chatbot.
 """
 
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -62,7 +62,7 @@ app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__
 # Pydantic models for API requests/responses
 class ChatRequest(BaseModel):
     message: str
-    session_id: str = None
+    session_id: Optional[str] = None
 
 class ChatResponse(BaseModel):
     response: str

@@ -47,10 +47,13 @@
             appendMessage('user', userMsg);
             chatInput.value = '';
             try {
+                const payload = { message: userMsg };
+                if (sessionId) payload.session_id = sessionId;
+
                 const res = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: userMsg, session_id: sessionId })
+                    body: JSON.stringify(payload)
                 });
                 if (!res.ok) throw new Error('Network response was not ok');
                 const data = await res.json();
