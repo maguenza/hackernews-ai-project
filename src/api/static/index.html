@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HackerNews AI Chatbot</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+        .chat-container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; }
+        .chat-log { height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px; padding: 12px; background: #fafafa; margin-bottom: 16px; }
+        .chat-message { margin-bottom: 12px; }
+        .chat-message.user { text-align: right; color: #1976d2; }
+        .chat-message.bot { text-align: left; color: #333; }
+        .chat-input-row { display: flex; }
+        .chat-input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .chat-send { margin-left: 8px; padding: 8px 16px; background: #1976d2; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+        .chat-send:disabled { background: #aaa; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h2>HackerNews AI Chatbot</h2>
+        <div class="chat-log" id="chat-log"></div>
+        <form id="chat-form" class="chat-input-row">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Type your message..." autocomplete="off" required />
+            <button type="submit" class="chat-send">Send</button>
+        </form>
+    </div>
+    <script>
+        const chatLog = document.getElementById('chat-log');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        let sessionId = null;
+
+        function appendMessage(sender, text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-message ' + sender;
+            msgDiv.textContent = text;
+            chatLog.appendChild(msgDiv);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userMsg = chatInput.value.trim();
+            if (!userMsg) return;
+            appendMessage('user', userMsg);
+            chatInput.value = '';
+            try {
+                const res = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: userMsg, session_id: sessionId })
+                });
+                if (!res.ok) throw new Error('Network response was not ok');
+                const data = await res.json();
+                sessionId = data.session_id || sessionId;
+                appendMessage('bot', data.response);
+            } catch (err) {
+                appendMessage('bot', 'Error: ' + err.message);
+            }
+        });
+    </script>
+</body>
+</html> 

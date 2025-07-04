@@ -8,6 +8,9 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
 from src.ai.chatbot import HackerNewsChatbot
 from src.database.connection import get_db_connection
@@ -52,6 +55,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static directory
+app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 
 # Pydantic models for API requests/responses
 class ChatRequest(BaseModel):
@@ -193,20 +199,7 @@ async def get_available_tools(chatbot_instance: HackerNewsChatbot = Depends(get_
         logger.error(f"Error getting tools: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error getting tools: {str(e)}")
 
-# Root endpoint
+# Replace the root endpoint to serve the chatbot UI
 @app.get("/")
 async def root():
-    """Root endpoint with basic information."""
-    return {
-        "name": "HackerNews AI Chatbot",
-        "version": "1.0.0",
-        "description": "AI-powered chatbot for analyzing HackerNews data",
-        "endpoints": {
-            "chat": "/chat",
-            "health": "/health",
-            "system_info": "/system/info",
-            "suggestions": "/suggestions",
-            "tools": "/tools",
-            "clear_history": "/chat/clear"
-        }
-    } 
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "index.html")) 
