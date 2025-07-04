@@ -43,7 +43,7 @@ class SearchStoriesTool(BaseTool):
     
     name: str = "search_stories"
     description: str = "Search for HackerNews stories by keywords in title or content. Use query (string) for search terms, limit (integer) for number of results, min_score (integer) for minimum score, days_back (integer) for time period"
-    args_schema = SearchStoriesInput
+    args_schema: type = SearchStoriesInput
     
     def _run(self, query: str, limit: int = 10, min_score: Optional[int] = None, days_back: Optional[int] = 30) -> str:
         """Search for stories matching the query."""
@@ -83,7 +83,7 @@ class SearchJobsTool(BaseTool):
     
     name: str = "search_jobs"
     description: str = "Search for HackerNews job postings by keywords, location, or job type. Use query (string) for search terms, location (string) for location filter, job_type (string) for job type, limit (integer) for number of results"
-    args_schema = SearchJobsInput
+    args_schema: type = SearchJobsInput
     
     def _run(self, query: str, location: Optional[str] = None, job_type: Optional[str] = None, limit: int = 10) -> str:
         """Search for jobs matching the criteria."""
@@ -123,7 +123,7 @@ class GetTopStoriesTool(BaseTool):
     
     name: str = "get_top_stories"
     description: str = "Get the top HackerNews stories by score for a given time period. Use limit (integer) for number of stories and days_back (integer) for time period (e.g., 7 for last week, 30 for last month)"
-    args_schema = GetTopStoriesInput
+    args_schema: type = GetTopStoriesInput
     
     def _run(self, limit: int = 10, days_back: int = 7) -> str:
         """Get top stories by score."""
@@ -157,7 +157,7 @@ class GetUserInfoTool(BaseTool):
     
     name: str = "get_user_info"
     description: str = "Get information about a HackerNews user including karma and activity. Use username (string) for the HackerNews username"
-    args_schema = GetUserInfoInput
+    args_schema: type = GetUserInfoInput
     
     def _run(self, username: str) -> str:
         """Get user information."""
@@ -199,7 +199,7 @@ class GetTrendingTopicsTool(BaseTool):
     
     name: str = "get_trending_topics"
     description: str = "Analyze trending topics from recent HackerNews stories. Use limit (integer) for number of stories and days_back (integer) for time period (e.g., 7 for last week, 30 for last month)"
-    args_schema = GetTopStoriesInput
+    args_schema: type = GetTopStoriesInput
     
     def _run(self, limit: int = 10, days_back: int = 7) -> str:
         """Get trending topics from recent stories."""
