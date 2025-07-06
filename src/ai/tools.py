@@ -5,7 +5,7 @@ Custom LangChain tools for HackerNews database queries.
 import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
-from sqlalchemy import text, func, desc, and_
+from sqlalchemy import text, func, desc, and_, or_
 from sqlalchemy.orm import Session
 from langchain.tools import BaseTool
 from pydantic import BaseModel, Field
@@ -49,8 +49,11 @@ class SearchStoriesTool(BaseTool):
         """Search for stories matching the query."""
         try:
             with get_db_connection() as db:
-                # Build the query
-                search_condition = Story.title.ilike(f"%{query}%")
+                # Enhanced search condition
+                search_condition = or_(
+                    Story.title.ilike(f"%{query}%"),
+                    Story.text.ilike(f"%{query}%")
+                )
                 
                 if min_score is not None:
                     search_condition = and_(search_condition, Story.score >= min_score)
@@ -89,8 +92,11 @@ class SearchJobsTool(BaseTool):
         """Search for jobs matching the criteria."""
         try:
             with get_db_connection() as db:
-                # Build the query
-                search_condition = Job.title.ilike(f"%{query}%")
+                # Enhanced search condition
+                search_condition = or_(
+                    Job.title.ilike(f"%{query}%"),
+                    Job.text.ilike(f"%{query}%")
+                )
                 
                 if location:
                     search_condition = and_(search_condition, Job.location.ilike(f"%{location}%"))
